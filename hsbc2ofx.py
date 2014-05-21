@@ -2,6 +2,8 @@
 
 # Takes a CSV from HSBCnet's Excel output and transforms it into OFX
 
+# TODO: spec says account info is required: FID, INTU.BID, INTU.USERID
+
 # SEE SPEC:
 # https://fi.intuit.com/ofximplementation/dl/wc_spec.pdf
 
@@ -38,6 +40,18 @@ TRN_TYPE_MAP = {
   'TT': 'INT',
   'DEPOSIT': 'DEP',
 }
+
+# These strings are removed from the "name" field to make it more legible
+REMOVE_NAME_PREFIXES = (
+    'ACH CONCENTRATION CREDIT CASH CONCENTRATION ',
+    'ACH CREDIT DEPOSIT FROM ',
+    'ACH PAYMENT CASH DISBURSEMENT ',
+    'ACH DEBIT PAYMENT TO ',
+    'AUTOMATIC TRANSFER DEBIT ONLINE PAYMENT TO ',
+)
+
+# According to the Quickbooks document, <NAME> field is this many chars
+NAME_LENGTH = 32
 
 
 def amount_to_float(amount_string):
@@ -77,7 +91,10 @@ NEWFILEUID:NONE
                 <SEVERITY>INFO</SEVERITY>
             </STATUS>
             <DTSERVER>%s</DTSERVER>
-            <LANGUAGE></LANGUAGE>
+            <LANGUAGE>ENG</LANGUAGE>
+            <FI>
+                <ORG>HSBC Bank USA</ORG>
+            </FI>
         </SONRS>
     </SIGNONMSGSRSV1>
     <BANKMSGSRSV1>
@@ -121,6 +138,13 @@ NEWFILEUID:NONE
     # Fake an ID with date + amount
     fitid = '%s%s%s%.2f' % (year, month, day, math.fabs(amount))
 
+    # remove useless prefixes then truncate
+    short_narrative = narrative
+    for prefix in REMOVE_NAME_PREFIXES:
+        if short_narrative.startswith(prefix):
+            short_narrative = short_narrative[len(prefix):]
+    short_narrative = short_narrative[:NAME_LENGTH]
+
     indent = '                '
     print '%s<STMTTRN>' % (indent)
     print '%s    <TRNTYPE>%s</TRNTYPE>' % (indent, ofx_type)
@@ -129,8 +153,8 @@ NEWFILEUID:NONE
     # if ofx_type == 'CHECK':
     #   print '%s    <CHECKNUM>%s</CHECKNUM>' % (indent, customer_reference)
     print '%s    <FITID>%s</FITID>' % (indent, fitid)
-    print '%s    <NAME>%s</NAME>' % (indent, narrative)
-    print '%s    <MEMO></MEMO>' % (indent)
+    print '%s    <NAME>%s</NAME>' % (indent, short_narrative)
+    print '%s    <MEMO>%s</MEMO>' % (indent, narrative)
     print '%s</STMTTRN>' % (indent)
 
 
