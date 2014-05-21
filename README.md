@@ -6,7 +6,13 @@ However, HSBC's Excel export contains the transaction descriptions, so I wrote t
 
 ## Usage
 
-1. In HSBCnet: Save account information in Excel format
-2. Open the file in Excel and export it to CSV.
-3. Convert: `./hsbc2ofx.py (input csv file) > (output ofx file)`
-4. Upload the OFX file to Quickbooks Online.
+1. One time setup: Edit `hsbc2ofx.py` to add a unique BANKID and ACCOUNTID at the top of the file. Example:
+
+    ```
+    BANKID=12345
+    ACCOUNTID=456789
+    ```
+2. In HSBCnet: Save account information in Excel format
+3. Open the file in Excel and export it to CSV.
+4. Convert: `./hsbc2ofx.py (input csv file) > (output ofx file)`
+5. Upload the OFX file to Quickbooks Online.
