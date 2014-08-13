@@ -32,6 +32,7 @@ OLD_NUMERIC_TYPE_MAP = {
   998: 'PAYMENT',  # ACH payment
 }
 
+# Maps from HSBC types to OFX types
 TRN_TYPE_MAP = {
   'TRANSFER': 'CREDIT',
   'BULK': 'DEBIT',
@@ -39,6 +40,7 @@ TRN_TYPE_MAP = {
   'CREDIT': 'CREDIT',
   'TT': 'INT',
   'DEPOSIT': 'DEP',
+  'CHARGES': 'SRVCHG',
 }
 
 # These strings are removed from the "name" field to make it more legible
@@ -52,6 +54,8 @@ REMOVE_NAME_PREFIXES = (
 
 # According to the Quickbooks document, <NAME> field is this many chars
 NAME_LENGTH = 32
+# Maximum characters in the <MEMO> field
+MEMO_LENGTH = 255
 
 
 def amount_to_float(amount_string):
@@ -128,6 +132,9 @@ NEWFILEUID:NONE
 
     ofx_type = TRN_TYPE_MAP[trn_type]
     day, month, year = date.split('/')
+    day = int(day)
+    month = int(month)
+    year = int(year)
 
     amount = debit
     if credit is not None:
@@ -136,7 +143,7 @@ NEWFILEUID:NONE
     assert amount is not None
 
     # Fake an ID with date + amount
-    fitid = '%s%s%s%.2f' % (year, month, day, math.fabs(amount))
+    fitid = '%02d%02d%02d%.2f' % (year, month, day, math.fabs(amount))
 
     # remove useless prefixes then truncate
     short_narrative = narrative
@@ -148,13 +155,13 @@ NEWFILEUID:NONE
     indent = '                '
     print '%s<STMTTRN>' % (indent)
     print '%s    <TRNTYPE>%s</TRNTYPE>' % (indent, ofx_type)
-    print '%s    <DTPOSTED>%s%s%s</DTPOSTED>' % (indent, year, month, day)
+    print '%s    <DTPOSTED>%02d%02d%02d</DTPOSTED>' % (indent, year, month, day)
     print '%s    <TRNAMT>%.2f</TRNAMT>' % (indent, amount)
     # if ofx_type == 'CHECK':
     #   print '%s    <CHECKNUM>%s</CHECKNUM>' % (indent, customer_reference)
     print '%s    <FITID>%s</FITID>' % (indent, fitid)
     print '%s    <NAME>%s</NAME>' % (indent, short_narrative)
-    print '%s    <MEMO>%s</MEMO>' % (indent, narrative)
+    print '%s    <MEMO>%s</MEMO>' % (indent, narrative[:MEMO_LENGTH])
     print '%s</STMTTRN>' % (indent)
 
 
