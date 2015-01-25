@@ -13,6 +13,14 @@ However, HSBC's Excel export contains the transaction descriptions, so I wrote t
     ACCOUNTID=456789
     ```
 2. In HSBCnet: Save account information in Excel format
-3. Open the file in Excel and export it to CSV.
+3. Open the file in Excel and export it to CSV (or see html2csv below)
 4. Convert: `./hsbc2ofx.py (input csv file) > (output ofx file)`
 5. Upload the OFX file to Quickbooks Online.
+
+
+## html2csv
+
+If you have Go installed, you can use this program to convert HSBCnet's "Excel export" (which is actually HTML) to CSV:
+
+1. One time compile: go build html2csv.go
+2. ./html2csv (input file) > output.csv
